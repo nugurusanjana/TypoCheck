@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypoCheck</title>
+  <style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #6e8efb, #a777e3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    color: #333;
+  }
+
+  /* Heading */
+  #name {
+    font-size: 65px;
+    color: #ffffff;
+    text-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  #level {
+    font-size: 32px;
+    color: #f0f2ff;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 30px;
+  }
+
+  /* Timer - keep fixed */
+  #timer {
+    position: fixed;
+    top: 30px;
+    right: 40px;
+    font-size: 42px;
+    background: #ffffff;
+    color: #ff4b2b;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  }
+
+  /* --- Question Box --- */
+  #lineText {
+    width: 90%;
+    max-width: 1100px;
+    background: #ffffffc8;
+    color: #000;
+    padding: 35px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.25);
+    margin-bottom: 30px;
+    font-size: 28px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    min-height: 150px;
+    border-left: 8px solid #6e8efb;
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  /* --- Typing Box --- */
+  #userInput {
+    width: 90%;
+    max-width: 1100px;
+    height: 170px;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: inherit;
+    background: #ffffffdd;
+    color: #000;
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.25);
+    margin-bottom: 40px;
+    font-size: 28px;
+    line-height: 1.7;
+    border-left: 8px solid #a777e3;
+    transition: box-shadow 0.3s, transform 0.1s;
+  }
+
+  #userInput:focus {
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.35);
+    transform: scale(1.01);
+  }
+
+  /* Correct / Incorrect Colors */
+  #lineText span.correct {
+    color: #0c9b35;
+    font-weight: 700;
+  }
+
+  #lineText span.incorrect {
+    color: #d60000;
+    font-weight: 700;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-content {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    margin: 5% auto;
+    padding: 50px;
+    width: 50%;
+    max-width: 600px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    animation: fadeIn 0.3s ease-out;
+    border: 2px solid #e0e7ff;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .close-btn {
+    background-color: #6366f1;
+    padding: 12px 30px;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: 0.2s;
+  }
+
+  .close-btn:hover {
+    background-color: #4f46e5;
+    transform: translateY(-2px);
+  }
+
+  /* Results Grid */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 30px;
+  }
+
+  .result-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #dee2e6;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  }
+
+  .result-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+
+  .result-text {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .result-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .result-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #495057;
+  }
+
+  /* Performance Message */
+  .performance-message {
+    font-size: 18px;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border: 1px solid #bbdefb;
+  }
+  </style>
+</head>
+<body>
+  
+  <div style="position: absolute; top: 20px; left: 20px;">
+    <button onclick="window.location.href='levels.html'" style="background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-size: 16px;">Back to Levels</button>
+  </div>
+  <h1 id="name">Typo Check</h1>
+  <h1 id="level">Level 1</h1>
+  <div id="timer">Time: 60s</div>
+  <div id="liveStats" style="position: fixed; top: 30px; left: 40px; font-size: 24px; background: #ffffff; color: #333; padding: 10px 20px; border-radius: 20px; font-weight: 600; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);">WPM: 0 | Accuracy: 100%</div>
+  <div id="lineScore" style="position: fixed; top: 90px; left: 40px; font-size: 20px; background: #e3f2fd; color: #0277bd; padding: 8px 16px; border-radius: 15px; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); display: none;"></div>
+  <div id="lineText"></div>
+  <textarea id="userInput" placeholder="Start typing here..."></textarea>
+  
+  <!-- Countdown Overlay -->
+  <div id="countdown" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 72px; color: white; background: rgba(0,0,0,0.8); padding: 20px 40px; border-radius: 20px; display: none; z-index: 1000;">3</div>
+
+  <!-- Time Up Overlay -->
+  <div id="timeUpOverlay" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; color: white; background: rgba(255,0,0,0.9); padding: 30px 50px; border-radius: 20px; display: none; z-index: 1001;">Time Up!</div>
+
+  <!-- Modal Popup for Results -->
+  <div id="resultModal" class="modal">
+    <div class="modal-content">
+      <h2 style="color: #ff914d; font-size: 36px; margin-bottom: 30px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">🎉 Typing Test Results 🎉</h2>
+
+      <div class="results-grid">
+        <div class="result-card" id="accuracyCard">
+          <div class="result-icon">🎯</div>
+          <div class="result-text">
+            <div class="result-label">Accuracy</div>
+            <div class="result-value" id="accuracyResult"></div>
+          </div>
+        </div>
+
+        <div class="result-card" id="errorCard">
+          <div class="result-icon">❌</div>
+          <div class="result-text">
+            <div class="result-label">Errors</div>
+            <div class="result-value" id="errorResult"></div>
+          </div>
+        </div>
+
+        <div class="result-card" id="wpmCard">
+          <div class="result-icon">⚡</div>
+          <div class="result-text">
+            <div class="result-label">Typing Speed</div>
+            <div class="result-value" id="wpmResult"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="performance-message" id="performanceMessage"></div>
+
+      <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+        <button class="close-btn" onclick="window.location.href='levels.html'">Back</button>
+        <button class="close-btn" onclick="replayTest()" style="background-color: #10b981;">Replay</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Typing Logic (no best score, no Firestore) -->
+  <script>
+  let stories = [];
+  let level = 1;
+  let currentText = "";
+  let originalText = "";
+  let timeLeft = 60;
+  let initialTime = 60;
+  let timerInterval;
+  let typedAll = "";
+  let started = false;
+
+  let selectedLevel = localStorage.getItem('selectedLevel') || null;
+
+  const lineText = document.getElementById("lineText");
+  const userInput = document.getElementById("userInput");
+  const timer = document.getElementById("timer");
+  const levelHeader = document.getElementById("level");
+  const liveStats = document.getElementById("liveStats");
+  const lineScore = document.getElementById("lineScore");
+
+  function getCurrentLevelKey() {
+    if (selectedLevel) return selectedLevel.toLowerCase();
+    if (level === 1) return 'easy';
+    if (level === 2) return 'medium';
+    return 'hard';
+  }
+
+  async function loadStories() {
+    try {
+      let jsonFile = "easy.json";
+      if (selectedLevel) {
+        jsonFile = `${selectedLevel}.json`;
+      }
+      const res = await fetch(jsonFile);
+      const data = await res.json();
+      stories = data.stories || [];
+      loadLevel(1);
+    } catch (err) {
+      console.error(`Failed to load stories file:`, err);
+    }
+  }
+
+  function getRandomStory() {
+    if (!stories.length) return '';
+    const randomStory = stories[Math.floor(Math.random() * stories.length)];
+    return randomStory.text;
+  }
+
+  function setNewStory() {
+    currentText = getRandomStory();
+    originalText += (originalText ? " " : "") + currentText;
+    updateLineDisplay();
+  }
+
+  function updateLineDisplay(highlightUntilIndex = -1, typed = "") {
+    let html = "";
+    for (let i = 0; i < currentText.length; i++) {
+      let ch = currentText[i]
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      if (i < typed.length) {
+        if (typed[i] === currentText[i]) {
+          html += `<span class="correct">${ch}</span>`;
+        } else {
+          html += `<span class="incorrect">${ch}</span>`;
+        }
+      } else {
+        html += `<span>${ch}</span>`;
+      }
+    }
+    lineText.innerHTML = html;
+  }
+
+  function startTimer() {
+    timer.textContent = `Time: ${timeLeft}s`;
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timer.textContent = `Time: ${timeLeft}s`;
+      updateLiveStats();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        userInput.disabled = true;
+        showResults();
+      }
+    }, 1000);
+  }
+
+  function showCountdown() {
+    const countdownEl = document.getElementById("countdown");
+    countdownEl.style.display = "block";
+    let count = 3;
+    countdownEl.textContent = count;
+    const interval = setInterval(() => {
+      count--;
+      if (count > 0) {
+        countdownEl.textContent = count;
+      } else {
+        clearInterval(interval);
+        countdownEl.style.display = "none";
+        userInput.disabled = false;
+        userInput.value = "";
+        userInput.focus();
+        startTimer();
+      }
+    }, 1000);
+  }
+
+  function loadLevel(levelNum) {
+    level = levelNum;
+    if (selectedLevel) {
+      levelHeader.textContent = selectedLevel.toUpperCase();
+      localStorage.removeItem('selectedLevel');
+    } else {
+      levelHeader.textContent = `Level ${levelNum}`;
+    }
+
+    typedAll = "";
+    originalText = "";
+    currentText = "";
+
+    const levelKey = getCurrentLevelKey();
+    timeLeft = levelKey === 'easy' ? 60 : levelKey === 'medium' ? 45 : 30;
+    initialTime = timeLeft;
+
+    userInput.value = "";
+    userInput.disabled = true;
+    clearInterval(timerInterval);
+    started = false;
+
+    setNewStory();
+    showCountdown();
+  }
+
+  // auto‑load next story when user reaches end (even with mistakes)
+  userInput.addEventListener("input", function () {
+    if (!started) {
+      started = true;
+    }
+
+    const typedCurrent = this.value;
+
+    if (typedCurrent.length >= currentText.length && timeLeft > 0) {
+      typedAll += (typedAll ? " " : "") + typedCurrent;
+      this.value = "";
+      setNewStory();
+      updateLiveStats();
+      return;
+    }
+
+    updateLineDisplay(-1, typedCurrent);
+  });
+
+  function calculateResults() {
+    const targetText = originalText;
+    let typedText = typedAll;
+
+    if (userInput.value && timeLeft <= 0) {
+      typedText += (typedText ? " " : "") + userInput.value;
+    }
+
+    typedText = typedText.substring(0, targetText.length);
+
+    let correctChars = 0;
+    let totalTyped = typedText.length;
+
+    for (let i = 0; i < totalTyped; i++) {
+      if (typedText[i] === targetText[i]) {
+        correctChars++;
+      }
+    }
+
+    const errors = totalTyped - correctChars;
+    const accuracy = totalTyped === 0
+      ? 0
+      : ((correctChars / totalTyped) * 100);
+
+    const timeUsed = initialTime;
+    const grossWpm = timeUsed > 0
+      ? (totalTyped / 5) / (timeUsed / 60)
+      : 0;
+    const netWpm = timeUsed > 0
+      ? ((correctChars / 5) / (timeUsed / 60))
+      : 0;
+
+    return {
+      accuracy: accuracy.toFixed(2),
+      errors,
+      netWpm: netWpm.toFixed(2),
+      grossWpm: grossWpm.toFixed(2)
+    };
+  }
+
+  function updateLiveStats() {
+    const timeUsed = initialTime - timeLeft;
+    if (timeUsed <= 0) {
+      liveStats.textContent = "WPM: 0 | Accuracy: 100%";
+      return;
+    }
+
+    const targetText = originalText;
+    let typedText = typedAll;
+
+    if (userInput.value && timeLeft > 0) {
+      typedText += (typedText ? " " : "") + userInput.value;
+    }
+
+    typedText = typedText.substring(0, targetText.length);
+
+    let correctChars = 0;
+    let totalTyped = typedText.length;
+
+    for (let i = 0; i < totalTyped; i++) {
+      if (typedText[i] === targetText[i]) {
+        correctChars++;
+      }
+    }
+
+    const accuracy = totalTyped === 0
+      ? 100
+      : ((correctChars / totalTyped) * 100);
+
+    const netWpm = ((correctChars / 5) / (timeUsed / 60)) || 0;
+
+    liveStats.textContent =
+      `WPM: ${netWpm.toFixed(2)} | Accuracy: ${accuracy.toFixed(2)}%`;
+  }
+
+  function showResults() {
+    const results = calculateResults();
+
+    document.getElementById("accuracyResult").textContent =
+      `${results.accuracy}%`;
+    document.getElementById("errorResult").textContent = results.errors;
+    document.getElementById("wpmResult").textContent =
+      `${results.netWpm} WPM`;
+
+    const performanceMessage =
+      generatePerformanceMessage(results.accuracy, results.netWpm, false);
+    document.getElementById("performanceMessage").textContent =
+      performanceMessage;
+
+    document.getElementById("resultModal").style.display = "block";
+  }
+
+  function generatePerformanceMessage(accuracy, wpm, isNewBest) {
+    let message = '';
+
+    const acc = parseFloat(accuracy);
+    const speed = parseFloat(wpm);
+
+    if (acc >= 95 && speed >= 60) {
+      message += '🌟 Outstanding performance! You\'re a typing master!';
+    } else if (acc >= 90 && speed >= 40) {
+      message += '⭐ Great job! Your typing skills are impressive!';
+    } else if (acc >= 80 && speed >= 25) {
+      message += '👍 Good work! Keep practicing to improve further!';
+    } else if (acc >= 70) {
+      message += '💪 Not bad! Focus on accuracy to boost your speed!';
+    } else {
+      message += '🎯 Keep practicing! Every expert was once a beginner!';
+    }
+    return message;
+  }
+
+  function closeModal() {
+    document.getElementById("resultModal").style.display = "none";
+  }
+
+  function replayTest() {
+    closeModal();
+    loadLevel(level);
+  }
+
+  window.closeModal = closeModal;
+  window.replayTest = replayTest;
+
+  window.onload = async function () {
+    const name = localStorage.getItem("typoUser");
+    await loadStories();
+  };
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypoCheck • Choose Level</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --accent: #ff914d;
+      --text: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: linear-gradient(135deg, #3d17e6, #49a6d5);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(38px, 4vw, 60px);
+      margin: 0 0 12px;
+    }
+
+    p.sub {
+      opacity: 0.85;
+      margin: 0 0 40px;
+      font-size: 1.3rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 28px;
+    }
+
+    .card {
+      background-color: WHITE;
+      color: black;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 40px 30px;
+      border-radius: 22px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.4);
+      transition: 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.03);
+      box-shadow: 0 18px 42px rgba(255, 145, 77, 0.45);
+    }
+
+    .lvl {
+      font-weight: 800;
+      margin-bottom: 14px;
+      letter-spacing: 1.2px;
+      font-size: 1.6rem;
+    }
+
+    .easy {
+      color: #10b981;
+    }
+
+    .med {
+      color: #f59e0b;
+    }
+
+    .hard {
+      color: #ef4444;
+    }
+
+    .desc {
+      opacity: 0.9;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      max-width: 90%;
+    }
+
+    .btn {
+      text-decoration: none;
+      background: var(--accent);
+      color: #111827;
+      padding: 14px 22px;
+      border-radius: 20px;
+      font-weight: 900;
+      font-size: 1.2rem;
+      transition: 0.25s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #ff7a21;
+      transform: scale(1.08);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Pick your challenge</h1>
+    <p class="sub">Choose your difficulty level and start your TypoCheck test.</p>
+
+    <section class="grid">
+      <article class="card">
+        <span class="lvl easy">EASY</span>
+        <p class="desc">Short, simple lines to warm up your fingers and mind.</p>
+        <button class="btn" onclick="startLevel('easy')">Start Easy</button>
+      </article>
+
+      <article class="card">
+        <span class="lvl med">MEDIUM</span>
+        <p class="desc">Longer sentences with punctuation and a few tricky words.</p>
+        <button class="btn" onclick="startLevel('medium')">Start Medium</button>
+      </article>
+
+      <article class="card">
+        <span class="lvl hard">HARD</span>
+        <p class="desc">Complex passages with tough vocabulary and punctuation traps.</p>
+        <button class="btn" onclick="startLevel('hard')">Start Hard</button>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    function startLevel(level) {
+      localStorage.setItem('selectedLevel', level);
+      window.location.href = 'test.html';
+    }
+  </script>
+</body>
+</html>
